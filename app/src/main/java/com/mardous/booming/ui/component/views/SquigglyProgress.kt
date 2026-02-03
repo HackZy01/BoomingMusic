@@ -67,7 +67,7 @@ class SquigglyProgress : Drawable() {
     // Horizontal length of the sine wave
     var waveLength = 100f
     // Height of each peak of the sine wave
-    var lineAmplitude = 2.5f
+    var lineAmplitude = 3f
     // Line speed in px per second
     var phaseSpeed = 8f
     // Progress stroke width, both for wave and solid line
