@@ -1,20 +1,4 @@
-package com.mardous.booming.ui.component.views
-
-/*
- * Copyright (C) 2022 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+[span_0](start_span)package com.mardous.booming.ui.component.views[span_0](end_span)
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -24,16 +8,173 @@ import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
 import androidx.annotation.VisibleForTesting
-import com.mardous.booming.extensions.resources.withAlpha
+[span_1](start_span)import com.mardous.booming.extensions.resources.withAlpha[span_1](end_span)
+import kotlin.math.abs
+import kotlin.math.cos
 
-private const val TWO_PI = (Math.PI * 2f).toFloat()
+[span_2](start_span)private const val TWO_PI = (Math.PI * 2f).toFloat()[span_2](end_span)
 
-@VisibleForTesting
-internal const val DISABLED_ALPHA = 77
+@VisibleForTesting 
+[span_3](start_span)internal const val DISABLED_ALPHA = 77[span_3](end_span)
 
 class SquigglyProgress : Drawable() {
+    [span_4](start_span)private val wavePaint = Paint()[span_4](end_span)
+    [span_5](start_span)private val linePaint = Paint()[span_5](end_span)
+    [span_6](start_span)private val path = Path()[span_6](end_span)
+    [span_7](start_span)private var heightFraction = 0f[span_7](end_span)
+    private var heightAnimator: ValueAnimator? [span_8](start_span)= null[span_8](end_span)
+    [span_9](start_span)private var phaseOffset = 0f[span_9](end_span)
+    [span_10](start_span)private var lastFrameTime = -1L[span_10](end_span)
 
-    private val wavePaint = Paint()
+    [span_11](start_span)private val transitionPeriods = 1.5f[span_11](end_span)
+    private val minWaveEndpoint = 0.2f 
+    private val matchedWaveEndpoint = 0.6f 
+
+    [span_12](start_span)var waveLength = 55f[span_12](end_span)
+    [span_13](start_span)var lineAmplitude = 6f[span_13](end_span)
+    [span_14](start_span)var phaseSpeed = 16f[span_14](end_span)
+    [span_15](start_span)var strokeWidth = 8f[span_15](end_span)
+        set(value) {
+            [span_16](start_span)if (field == value) return[span_16](end_span)
+            field = value
+            [span_17](start_span)wavePaint.strokeWidth = value[span_17](end_span)
+            [span_18](start_span)linePaint.strokeWidth = value[span_18](end_span)
+        }
+
+    [span_19](start_span)var transitionEnabled = true[span_19](end_span)
+        set(value) {
+            field = value
+            [span_20](start_span)invalidateSelf()[span_20](end_span)
+        }
+
+    init {
+        [span_21](start_span)wavePaint.strokeCap = Paint.Cap.ROUND[span_21](end_span)
+        [span_22](start_span)linePaint.strokeCap = Paint.Cap.ROUND[span_22](end_span)
+        [span_23](start_span)linePaint.style = Paint.Style.STROKE[span_23](end_span)
+        [span_24](start_span)wavePaint.style = Paint.Style.STROKE[span_24](end_span)
+        [span_25](start_span)linePaint.alpha = DISABLED_ALPHA[span_25](end_span)
+    }
+
+    [span_26](start_span)var animate: Boolean = true[span_26](end_span)
+        set(value) {
+            [span_27](start_span)if (field == value) return[span_27](end_span)
+            [span_28](start_span)field = value[span_28](end_span)
+            if (field) {
+                [span_29](start_span)lastFrameTime = SystemClock.uptimeMillis()[span_29](end_span)
+            }
+            [span_30](start_span)heightAnimator?.cancel()[span_30](end_span)
+            heightAnimator = ValueAnimator.ofFloat(heightFraction, if (animate) 1f else 0f).apply {
+                [span_31](start_span)duration = if (animate) 800 else 550[span_31](end_span)
+                [span_32](start_span)startDelay = if (animate) 60 else 0[span_32](end_span)
+                addUpdateListener {
+                    [span_33](start_span)heightFraction = it.animatedValue as Float[span_33](end_span)
+                    [span_34](start_span)invalidateSelf()[span_34](end_span)
+                }
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        [span_35](start_span)heightAnimator = null[span_35](end_span)
+                    }
+                })
+                [span_36](start_span)start()[span_36](end_span)
+            }
+        }
+
+    override fun draw(canvas: Canvas) {
+        if (animate) {
+            [span_37](start_span)invalidateSelf()[span_37](end_span)
+            [span_38](start_span)val now = SystemClock.uptimeMillis()[span_38](end_span)
+            [span_39](start_span)phaseOffset += (now - lastFrameTime) / 1000f * phaseSpeed[span_39](end_span)
+            [span_40](start_span)phaseOffset %= waveLength[span_40](end_span)
+            [span_41](start_span)lastFrameTime = now[span_41](end_span)
+        }
+
+        [span_42](start_span)val progress = level / 10_000f[span_42](end_span)
+        [span_43](start_span)val totalWidth = bounds.width().toFloat()[span_43](end_span)
+        [span_44](start_span)val totalProgressPx = totalWidth * progress[span_44](end_span)
+        val waveProgressPx = totalWidth * (if (!transitionEnabled || progress > matchedWaveEndpoint) progress 
+            [span_45](start_span)else lerp(minWaveEndpoint, matchedWaveEndpoint, lerpInv(0f, matchedWaveEndpoint, progress)))[span_45](end_span)
+
+        [span_46](start_span)val waveStart = -phaseOffset - waveLength / 2f[span_46](end_span)
+        [span_47](start_span)val waveEnd = if (transitionEnabled) totalWidth else waveProgressPx[span_47](end_span)
+
+        val computeAmplitude: (Float, Float) -> Float = { x, sign ->
+            if (transitionEnabled) {
+                [span_48](start_span)val length = transitionPeriods * waveLength[span_48](end_span)
+                [span_49](start_span)val coeff = lerpInvSat(waveProgressPx + length / 2f, waveProgressPx - length / 2f, x)[span_49](end_span)
+                [span_50](start_span)sign * heightFraction * lineAmplitude * coeff[span_50](end_span)
+            } else {
+                [span_51](start_span)sign * heightFraction * lineAmplitude[span_51](end_span)
+            }
+        }
+
+        [span_52](start_span)path.rewind()[span_52](end_span)
+        [span_53](start_span)path.moveTo(waveStart, 0f)[span_53](end_span)
+
+        [span_54](start_span)var currentX = waveStart[span_54](end_span)
+        var waveSign = 1f 
+        [span_55](start_span)var currentAmp = computeAmplitude(currentX, waveSign)[span_55](end_span)
+        [span_56](start_span)val dist = waveLength / 2f[span_56](end_span)
+
+        while (currentX < waveEnd) {
+            [span_57](start_span)waveSign = -waveSign[span_57](end_span)
+            [span_58](start_span)val nextX = currentX + dist[span_58](end_span)
+            [span_59](start_span)val midX = currentX + dist / 2[span_59](end_span)
+            [span_60](start_span)val nextAmp = computeAmplitude(nextX, waveSign)[span_60](end_span)
+            [span_61](start_span)path.cubicTo(midX, currentAmp, midX, nextAmp, nextX, nextAmp)[span_61](end_span)
+            [span_62](start_span)currentAmp = nextAmp[span_62](end_span)
+            [span_63](start_span)currentX = nextX[span_63](end_span)
+        }
+
+        [span_64](start_span)val clipTop = lineAmplitude + strokeWidth[span_64](end_span)
+        [span_65](start_span)canvas.save()[span_65](end_span)
+        [span_66](start_span)canvas.translate(bounds.left.toFloat(), bounds.centerY().toFloat())[span_66](end_span)
+
+        [span_67](start_span)canvas.save()[span_67](end_span)
+        [span_68](start_span)canvas.clipRect(0f, -1f * clipTop, totalProgressPx, clipTop)[span_68](end_span)
+        [span_69](start_span)canvas.drawPath(path, wavePaint)[span_69](end_span)
+        [span_70](start_span)canvas.restore()[span_70](end_span)
+
+        if (transitionEnabled) {
+            [span_71](start_span)canvas.save()[span_71](end_span)
+            [span_72](start_span)canvas.clipRect(totalProgressPx, -1f * clipTop, totalWidth, clipTop)[span_72](end_span)
+            [span_73](start_span)canvas.drawPath(path, linePaint)[span_73](end_span)
+            [span_74](start_span)canvas.restore()[span_74](end_span)
+        } else {
+            [span_75](start_span)canvas.drawLine(totalProgressPx, 0f, totalWidth, 0f, linePaint)[span_75](end_span)
+        }
+
+        // Draw round line cap at the beginning (from Squiggly.kt)
+        val startAmp = cos(abs(waveStart) / waveLength * TWO_PI)
+        canvas.drawPoint(0f, startAmp * lineAmplitude * heightFraction, wavePaint)
+
+        [span_76](start_span)canvas.restore()[span_76](end_span)
+    }
+
+    [span_77](start_span)// Helper Math Functions[span_77](end_span)
+    private fun lerp(start: Float, stop: Float, amount: Float): Float = start + (stop - start) * amount
+    private fun lerpInv(a: Float, b: Float, value: Float): Float = if (a != b) (value - a) / (b - a) else 0.0f
+    private fun saturate(value: Float): Float = if (value < 0f) 0f else if (value > 1f) 1f else value
+    private fun lerpInvSat(a: Float, b: Float, value: Float): Float = saturate(lerpInv(a, b, value))
+
+    [span_78](start_span)override fun getOpacity(): Int = PixelFormat.TRANSLUCENT[span_78](end_span)
+    override fun setColorFilter(colorFilter: ColorFilter?) {
+        [span_79](start_span)wavePaint.colorFilter = colorFilter[span_79](end_span)
+        [span_80](start_span)linePaint.colorFilter = colorFilter[span_80](end_span)
+    }
+    [span_81](start_span)override fun setAlpha(alpha: Int) = updateColors(wavePaint.color, alpha)[span_81](end_span)
+    [span_82](start_span)override fun getAlpha(): Int = wavePaint.alpha[span_82](end_span)
+    [span_83](start_span)override fun setTint(tintColor: Int) = updateColors(tintColor, alpha)[span_83](end_span)
+    [span_84](start_span)override fun onLevelChange(level: Int): Boolean = animate[span_84](end_span)
+    
+    override fun setTintList(tint: ColorStateList?) {
+        [span_85](start_span)if (tint != null) updateColors(tint.defaultColor, alpha)[span_85](end_span)
+    }
+
+    private fun updateColors(tintColor: Int, alpha: Int) {
+        [span_86](start_span)wavePaint.color = tintColor.withAlpha(alpha / 255f)[span_86](end_span)
+        [span_87](start_span)linePaint.color = tintColor.withAlpha((DISABLED_ALPHA * (alpha / 255f)) / 255f)[span_87](end_span)
+    }
+}
     private val linePaint = Paint()
     private val path = Path()
     private var heightFraction = 1f
