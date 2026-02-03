@@ -206,9 +206,14 @@ class SquigglyProgress : Drawable() {
         }
 
         // Draw round line cap at the beginning and end of the wave
+			// beggining
         val startAmp = cos(abs(waveStart) / waveLength * TWO_PI)
         canvas.drawPoint(0f, startAmp * lineAmplitude * heightFraction, wavePaint)
-		canvas.drawPoint(totalWidth+1f, 0f, linePaint)
+			// end
+		val oldXfermode = linePaint.xfermode
+		linePaint.xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC_ATOP)
+		canvas.drawPoint(totalWidth, 0f, linePaint)
+		linePaint.xfermode = oldXfermode)
 		
         canvas.restore()
     }
