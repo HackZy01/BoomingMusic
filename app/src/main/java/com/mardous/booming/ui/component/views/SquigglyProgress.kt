@@ -184,7 +184,6 @@ class SquigglyProgress : Drawable() {
 		if (transitionEnabled) path.lineTo(waveEnd, 0f)
 
         // translate to the start position of the progress bar for all draw commands
-		val radius = strokeWidth / 2f
         val clipTop = lineAmplitude + strokeWidth
         canvas.save()
         canvas.translate(bounds.left.toFloat(), bounds.centerY().toFloat())
