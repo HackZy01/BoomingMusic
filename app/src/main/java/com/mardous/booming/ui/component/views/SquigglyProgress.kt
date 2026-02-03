@@ -92,6 +92,8 @@ class SquigglyProgress : Drawable() {
     init {
         wavePaint.strokeCap = Paint.Cap.ROUND
         linePaint.strokeCap = Paint.Cap.ROUND
+        wavePaint.strokeWidth = strokeWidth
+        linePaint.strokeWidth = strokeWidth
         linePaint.style = Paint.Style.STROKE
         wavePaint.style = Paint.Style.STROKE
         linePaint.alpha = DISABLED_ALPHA
