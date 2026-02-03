@@ -148,7 +148,8 @@ class SquigglyProgress : Drawable() {
 		val waveProgressPx = totalProgressPx
         // Build Wiggly Path
         val waveStart = -phaseOffset - waveLength / 2f
-        val waveEnd = if (transitionEnabled) totalWidth else waveProgressPx
+		val radius = strokeWidth / 2f
+        val waveEnd = if (transitionEnabled) totalWidth - radius else waveProgressPx
 
         // helper function, computes amplitude for wave segment
         val computeAmplitude: (Float, Float) -> Float = { x, sign ->
@@ -180,6 +181,7 @@ class SquigglyProgress : Drawable() {
             currentAmp = nextAmp
             currentX = nextX
         }
+		if (transitionEnabled) path.lineTo(waveEnd, 0f)
 
         // translate to the start position of the progress bar for all draw commands
 		val radius = strokeWidth / 2f
@@ -203,7 +205,7 @@ class SquigglyProgress : Drawable() {
         } else {
             // No transition, just draw a flat line to the end of the region.
             // The discontinuity is hidden by the progress bar thumb shape.
-            canvas.drawLine(totalProgressPx, 0f, totalWidth - radius, 0f, linePaint)
+            canvas.drawLine(totalProgressPx +4f, 0f, totalWidth - radius, 0f, linePaint)
         }
 
         // Draw round line cap at the beginning of the wave
