@@ -148,8 +148,7 @@ class SquigglyProgress : Drawable() {
 		val waveProgressPx = totalProgressPx
         // Build Wiggly Path
         val waveStart = -phaseOffset - waveLength / 2f
-		val radius = strokeWidth / 2f
-        val waveEnd = if (transitionEnabled) totalWidth - radius else waveProgressPx
+        val waveEnd = if (transitionEnabled) totalWidth else waveProgressPx
 
         // helper function, computes amplitude for wave segment
         val computeAmplitude: (Float, Float) -> Float = { x, sign ->
@@ -181,37 +180,35 @@ class SquigglyProgress : Drawable() {
             currentAmp = nextAmp
             currentX = nextX
         }
-		if (transitionEnabled) path.lineTo(waveEnd, 0f)
 
         // translate to the start position of the progress bar for all draw commands
         val clipTop = lineAmplitude + strokeWidth
         canvas.save()
         canvas.translate(bounds.left.toFloat(), bounds.centerY().toFloat())
-
+		val halfStroke = strokeWidth / 2f
         // Draw path up to progress position
         canvas.save()
-        canvas.clipRect(0f, -1f * clipTop, totalProgressPx, clipTop)
+        canvas.clipRect(0f, -1f * clipTop, totalProgressPx + halfStroke, clipTop)
         canvas.drawPath(path, wavePaint)
         canvas.restore()
-		
+
         if (transitionEnabled) {
             // If there's a smooth transition, we draw the rest of the
             // path in a different color (using different clip params)
             canvas.save()
-            canvas.clipRect(totalProgressPx, -1f * clipTop, totalWidth + radius, clipTop)
+            canvas.clipRect(totalProgressPx + halfStroke, -1f * clipTop, totalWidth, clipTop)
             canvas.drawPath(path, linePaint)
             canvas.restore()
         } else {
             // No transition, just draw a flat line to the end of the region.
             // The discontinuity is hidden by the progress bar thumb shape.
-            canvas.drawLine(totalProgressPx +4f, 0f, totalWidth - radius, 0f, linePaint)
+            canvas.drawLine(totalProgressPx, 0f, totalWidth, 0f, linePaint)
         }
 
         // Draw round line cap at the beginning of the wave
         val startAmp = cos(abs(waveStart) / waveLength * TWO_PI)
         canvas.drawPoint(0f, startAmp * lineAmplitude * heightFraction, wavePaint)
-		// canvas.drawPoint(totalWidth, 0f, linePaint)
-		
+
         canvas.restore()
     }
 
