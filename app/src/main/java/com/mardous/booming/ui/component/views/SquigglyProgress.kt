@@ -67,7 +67,7 @@ class SquigglyProgress : Drawable() {
     // Horizontal length of the sine wave
     var waveLength = 60f
     // Height of each peak of the sine wave
-    var lineAmplitude = 4f
+    var lineAmplitude = 3.5f
     // Line speed in px per second
     var phaseSpeed = 12f
     // Progress stroke width, both for wave and solid line
@@ -213,7 +213,7 @@ class SquigglyProgress : Drawable() {
 		val oldXfermode = linePaint.xfermode
 		linePaint.xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC_ATOP)
 		canvas.drawPoint(totalWidth, 0f, linePaint)
-		linePaint.xfermode = oldXfermode)
+		linePaint.xfermode = oldXfermode
 		
         canvas.restore()
     }
