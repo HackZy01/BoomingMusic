@@ -31,7 +31,7 @@ import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
- // import android.util.MathUtils.lerp
+ // mport android.util.MathUtils.lerp
  // import android.util.MathUtils.lerpInv
  // import android.util.MathUtils.lerpInvSat
 import androidx.annotation.VisibleForTesting
@@ -65,7 +65,7 @@ class SquigglyProgress : Drawable() {
     private val matchedWaveEndpoint = 0.6f
 
     // Horizontal length of the sine wave
-    var waveLength = 50f
+    var waveLength = 55f
     // Height of each peak of the sine wave
     var lineAmplitude = 2.5f
     // Line speed in px per second
@@ -143,16 +143,7 @@ class SquigglyProgress : Drawable() {
         val progress = level / 10_000f
         val totalWidth = bounds.width().toFloat()
         val totalProgressPx = totalWidth * progress
-        val waveProgressPx =
-            totalWidth *
-                (if (!transitionEnabled || progress > matchedWaveEndpoint) progress
-                else
-                    lerp(
-                        minWaveEndpoint,
-                        matchedWaveEndpoint,
-                        lerpInv(0f, matchedWaveEndpoint, progress)
-                    ))
-
+		val waveProgressPx = totalProgressPx
         // Build Wiggly Path
         val waveStart = -phaseOffset - waveLength / 2f
         val waveEnd = if (transitionEnabled) totalWidth else waveProgressPx
