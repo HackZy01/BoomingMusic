@@ -65,9 +65,9 @@ class SquigglyProgress : Drawable() {
     private val matchedWaveEndpoint = 0.6f
 
     // Horizontal length of the sine wave
-    var waveLength = 50f
+    var waveLength = 60f
     // Height of each peak of the sine wave
-    var lineAmplitude = 3f
+    var lineAmplitude = 4f
     // Line speed in px per second
     var phaseSpeed = 12f
     // Progress stroke width, both for wave and solid line
