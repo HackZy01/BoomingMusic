@@ -65,13 +65,13 @@ class SquigglyProgress : Drawable() {
     private val matchedWaveEndpoint = 0.6f
 
     // Horizontal length of the sine wave
-    var waveLength = 55f
+    var waveLength = 100f
     // Height of each peak of the sine wave
     var lineAmplitude = 2.5f
     // Line speed in px per second
     var phaseSpeed = 8f
     // Progress stroke width, both for wave and solid line
-    var strokeWidth = 8f
+    var strokeWidth = 6f
         set(value) {
             if (field == value) {
                 return
@@ -144,7 +144,7 @@ class SquigglyProgress : Drawable() {
 
         val progress = level / 10_000f
         val totalWidth = bounds.width().toFloat()
-        val totalProgressPx = totalWidth * progress
+        val totalProgressPx = (totalWidth * progress) - 6f
 		val waveProgressPx = totalProgressPx
         // Build Wiggly Path
         val waveStart = -phaseOffset - waveLength / 2f
@@ -205,10 +205,11 @@ class SquigglyProgress : Drawable() {
             canvas.drawLine(totalProgressPx, 0f, totalWidth, 0f, linePaint)
         }
 
-        // Draw round line cap at the beginning of the wave
+        // Draw round line cap at the beginning and end of the wave
         val startAmp = cos(abs(waveStart) / waveLength * TWO_PI)
         canvas.drawPoint(0f, startAmp * lineAmplitude * heightFraction, wavePaint)
-
+		canvas.drawPoint(totalWidth, 0f, linePaint)
+		
         canvas.restore()
     }
 
