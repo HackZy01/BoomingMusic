@@ -133,7 +133,7 @@ class SquigglyProgress : Drawable() {
         drawTraced(canvas)
     }
 
-	private fun drawTraced(canvas: Canvas) {
+    private fun drawTraced(canvas: Canvas) {
         if (animate) {
             invalidateSelf()
             val now = SystemClock.uptimeMillis()
@@ -145,25 +145,28 @@ class SquigglyProgress : Drawable() {
         val progress = level / 10_000f
         val totalWidth = bounds.width().toFloat()
         val totalProgressPx = (totalWidth * progress) - 4f
-        val waveProgressPx = totalProgressPx 
-
+		val waveProgressPx = totalProgressPx
         // Build Wiggly Path
         val waveStart = -phaseOffset - waveLength / 2f
         val waveEnd = if (transitionEnabled) totalWidth else waveProgressPx
 
+        // helper function, computes amplitude for wave segment
         val computeAmplitude: (Float, Float) -> Float = { x, sign ->
             if (transitionEnabled) {
-                val length = 1.0f * waveLength 
-                val coeff = lerpInvSat(waveProgressPx + length / 2f, waveProgressPx - length / 2f, x)
+                val length = transitionPeriods * waveLength
+                val coeff =
+                    lerpInvSat(waveProgressPx + length / 2f, waveProgressPx - length / 2f, x)
                 sign * heightFraction * lineAmplitude * coeff
             } else {
                 sign * heightFraction * lineAmplitude
             }
         }
 
+        // Reset path object to the start
         path.rewind()
         path.moveTo(waveStart, 0f)
 
+        // Build the wave, incrementing by half the wavelength each time
         var currentX = waveStart
         var waveSign = 1f
         var currentAmp = computeAmplitude(currentX, waveSign)
@@ -178,36 +181,36 @@ class SquigglyProgress : Drawable() {
             currentX = nextX
         }
 
+        // translate to the start position of the progress bar for all draw commands
+		val radius = strokeWidth / 2f
         val clipTop = lineAmplitude + strokeWidth
         canvas.save()
         canvas.translate(bounds.left.toFloat(), bounds.centerY().toFloat())
 
+        // Draw path up to progress position
         canvas.save()
         canvas.clipRect(0f, -1f * clipTop, totalProgressPx, clipTop)
         canvas.drawPath(path, wavePaint)
-        
-        // BEGINNING DOT
-        val startAmp = cos(abs(waveStart) / waveLength * TWO_PI)
-        canvas.drawPoint(0f, startAmp * lineAmplitude * heightFraction, wavePaint)
-        
         canvas.restore()
-
-        val saveCount = canvas.saveLayer(totalProgressPx, -clipTop, totalWidth + strokeWidth, clipTop, null)
-        
+		
         if (transitionEnabled) {
+            // If there's a smooth transition, we draw the rest of the
+            // path in a different color (using different clip params)
             canvas.save()
-            canvas.clipRect(totalProgressPx, -1f * clipTop, totalWidth, clipTop)
+            canvas.clipRect(totalProgressPx, -1f * clipTop, totalWidth + radius, clipTop)
             canvas.drawPath(path, linePaint)
             canvas.restore()
         } else {
-            canvas.drawLine(totalProgressPx, 0f, totalWidth, 0f, linePaint)
+            // No transition, just draw a flat line to the end of the region.
+            // The discontinuity is hidden by the progress bar thumb shape.
+            canvas.drawLine(totalProgressPx, 0f, totalWidth - radius, 0f, linePaint)
         }
 
-		// END DOT
-        canvas.drawPoint(totalWidth, 0f, linePaint)
-
-        canvas.restoreToCount(saveCount)
-
+        // Draw round line cap at the beginning of the wave
+        val startAmp = cos(abs(waveStart) / waveLength * TWO_PI)
+        canvas.drawPoint(0f, startAmp * lineAmplitude * heightFraction, wavePaint)
+		// canvas.drawPoint(totalWidth, 0f, linePaint)
+		
         canvas.restore()
     }
 
