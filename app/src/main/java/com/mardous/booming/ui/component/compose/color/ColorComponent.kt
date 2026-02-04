@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.palette.graphics.Palette
-import com.kyant.m3color.score.Score
+import score.Score
 import com.mardous.booming.ui.theme.onSurfaceDark
 import com.mardous.booming.ui.theme.onSurfaceLight
 import com.mardous.booming.ui.theme.onSurfaceVariantDark
