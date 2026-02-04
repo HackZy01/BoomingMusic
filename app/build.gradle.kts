@@ -211,7 +211,7 @@ dependencies {
     implementation(libs.room)
     ksp(libs.room.compiler)
 
-    implementation(libs.m3color)
+    implementation("com.github.ronenfe:material-color-utilities-main:Tag")
     implementation(libs.coil.transformations)
 
     implementation(libs.balloon)
