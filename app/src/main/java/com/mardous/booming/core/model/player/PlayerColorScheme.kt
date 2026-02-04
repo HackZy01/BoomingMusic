@@ -23,8 +23,8 @@ import androidx.annotation.ColorInt
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import androidx.core.graphics.ColorUtils
-import com.kyant.m3color.hct.Hct
-import com.kyant.m3color.scheme.SchemeContent
+import hct.Hct
+import scheme.SchemeTonalSpot
 import com.mardous.booming.R
 import com.mardous.booming.core.model.PaletteColor
 import com.mardous.booming.extensions.isNightMode
@@ -202,7 +202,7 @@ data class PlayerColorScheme(
         }
 
         /**
-         * Generates a [PlayerColorScheme] using the m3color library (Monet). This allows us
+         * Generates a [PlayerColorScheme] using the material-color-utilities library by ronenfe. This allows us
          * to generate Material You-based colors for all devices, without directly relying
          * on Android 12 APIs.
          *
@@ -217,7 +217,7 @@ data class PlayerColorScheme(
             seedColor: Int
         ) = withContext(Dispatchers.IO) {
             val sourceHct = Hct.fromInt(seedColor)
-            val colorScheme = SchemeContent(
+            val colorScheme = SchemeTonalSpot(
                 sourceHct,
                 baseContext.isNightMode,
                 baseContext.systemContrast.toDouble()
@@ -226,12 +226,12 @@ data class PlayerColorScheme(
                 mode = Mode.MaterialYou,
                 appThemeToken = AppThemeToken.None,
                 blurToken = BlurToken.None,
-                surfaceColor = colorScheme.surface,
-                surfaceContainerColor = colorScheme.surfaceContainerHigh,
-                primaryColor = colorScheme.primary,
-                tonalColor = colorScheme.secondaryContainer,
-                onSurfaceColor = colorScheme.onSurface,
-                onSurfaceVariantColor = colorScheme.onSurfaceVariant.withAlpha(0.7f)
+                surfaceColor = colorScheme.getSurface(),
+                surfaceContainerColor = colorScheme.getSurfaceContainerHigh(),
+                primaryColor = colorScheme.getPrimary(),
+                tonalColor = colorScheme.getSecondaryContainer(),
+                onSurfaceColor = colorScheme.getOnSurface(),
+                onSurfaceVariantColor = colorScheme.getOnSurfaceVariant().withAlpha(0.7f)
             )
         }
 
