@@ -29,6 +29,8 @@ import android.graphics.ColorFilter
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PixelFormat
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode	  
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
  // mport android.util.MathUtils.lerp
@@ -183,20 +185,26 @@ class SquigglyProgress : Drawable() {
 
         // translate to the start position of the progress bar for all draw commands
         val clipTop = lineAmplitude + strokeWidth
-        canvas.save()
-        canvas.translate(bounds.left.toFloat(), bounds.centerY().toFloat())
-		val halfStroke = strokeWidth / 2f
+        val saveCount = canvas.saveLayer(
+            bounds.left.toFloat(), 
+            bounds.top.toFloat(), 
+            bounds.right.toFloat(), 
+            bounds.bottom.toFloat(), 
+            null
+        )        
+		canvas.translate(bounds.left.toFloat(), bounds.centerY().toFloat())
+
         // Draw path up to progress position
         canvas.save()
-        canvas.clipRect(0f, -1f * clipTop, totalProgressPx + halfStroke, clipTop)
+        canvas.clipRect(0f, -1f * clipTop, totalProgressPx, clipTop)
         canvas.drawPath(path, wavePaint)
         canvas.restore()
-
+		
         if (transitionEnabled) {
             // If there's a smooth transition, we draw the rest of the
             // path in a different color (using different clip params)
             canvas.save()
-            canvas.clipRect(totalProgressPx + halfStroke, -1f * clipTop, totalWidth, clipTop)
+            canvas.clipRect(totalProgressPx, -1f * clipTop, totalWidth, clipTop)
             canvas.drawPath(path, linePaint)
             canvas.restore()
         } else {
@@ -208,8 +216,14 @@ class SquigglyProgress : Drawable() {
         // Draw round line cap at the beginning of the wave
         val startAmp = cos(abs(waveStart) / waveLength * TWO_PI)
         canvas.drawPoint(0f, startAmp * lineAmplitude * heightFraction, wavePaint)
-
-        canvas.restore()
+		// canvas.drawPoint(totalWidth, 0f, linePaint)
+		
+		val originalXfermode = linePaint.xfermode
+        linePaint.xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC)
+        canvas.drawPoint(totalWidth, 0f, linePaint)
+        linePaint.xfermode = originalXfermode
+		
+        canvas.restoreToCount(saveCount)
     }
 
     override fun getOpacity(): Int {
