@@ -31,12 +31,8 @@ import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
- // mport android.util.MathUtils.lerp
- // import android.util.MathUtils.lerpInv
- // import android.util.MathUtils.lerpInvSat
 import androidx.annotation.VisibleForTesting
 import android.view.animation.PathInterpolator
- // import com.android.app.tracing.traceSection
 import androidx.core.graphics.ColorUtils
 import kotlin.math.abs
 import kotlin.math.cos
