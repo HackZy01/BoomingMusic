@@ -29,8 +29,6 @@ import android.graphics.ColorFilter
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PixelFormat
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode	  
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
  // mport android.util.MathUtils.lerp
@@ -71,7 +69,7 @@ class SquigglyProgress : Drawable() {
     // Height of each peak of the sine wave
     var lineAmplitude = 3.5f
     // Line speed in px per second
-    var phaseSpeed = 12f
+    var phaseSpeed = 16f
     // Progress stroke width, both for wave and solid line
     var strokeWidth = 8f
         set(value) {
@@ -94,10 +92,10 @@ class SquigglyProgress : Drawable() {
     init {
         wavePaint.strokeCap = Paint.Cap.ROUND
         linePaint.strokeCap = Paint.Cap.ROUND
-        wavePaint.strokeWidth = strokeWidth
-        linePaint.strokeWidth = strokeWidth
         linePaint.style = Paint.Style.STROKE
-        wavePaint.style = Paint.Style.STROKE
+		wavePaint.style = Paint.Style.STROKE
+		linePaint.strokeWidth = strokeWidth
+		wavePaint.strokeWidth = strokeWidth
         linePaint.alpha = DISABLED_ALPHA
     }
 
@@ -185,21 +183,15 @@ class SquigglyProgress : Drawable() {
 
         // translate to the start position of the progress bar for all draw commands
         val clipTop = lineAmplitude + strokeWidth
-        val saveCount = canvas.saveLayer(
-            bounds.left.toFloat(),
-            bounds.top.toFloat(),
-            bounds.right.toFloat(),
-            bounds.bottom.toFloat(),
-            null
-        )
-		canvas.translate(bounds.left.toFloat(), bounds.centerY().toFloat())
+        canvas.save()
+        canvas.translate(bounds.left.toFloat(), bounds.centerY().toFloat())
 
         // Draw path up to progress position
         canvas.save()
-        canvas.clipRect(0f, -1f * clipTop, totalProgressPx, clipTop)
+        canvas.clipRect(0f, -1f * clipTop, totalProgressPx -4f, clipTop)
         canvas.drawPath(path, wavePaint)
         canvas.restore()
-		
+
         if (transitionEnabled) {
             // If there's a smooth transition, we draw the rest of the
             // path in a different color (using different clip params)
@@ -216,16 +208,8 @@ class SquigglyProgress : Drawable() {
         // Draw round line cap at the beginning of the wave
         val startAmp = cos(abs(waveStart) / waveLength * TWO_PI)
         canvas.drawPoint(0f, startAmp * lineAmplitude * heightFraction, wavePaint)
-		// canvas.drawPoint(totalWidth, 0f, linePaint)
-		
-		val originalXfermode = linePaint.xfermode
-		val originalLineStyle = linePaint.style
-        linePaint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC)
-        linePaint.style = Paint.Style.FILL
-        canvas.drawCircle(totalWidth, 0f, strokeWidth / 2f, linePaint)
-        linePaint.xfermode = originalXfermode
-		linePaint.style = originalLineStyle
-        canvas.restoreToCount(saveCount)
+
+        canvas.restore()
     }
 
     override fun getOpacity(): Int {
