@@ -52,11 +52,6 @@
 		</menu>
 	</item>
 	<item
-		android:id="@+id/action_tag_editor"
-		android:title="@string/action_tag_editor"
-		android:icon="@drawable/ic_edit_24dp"
-		app:showAsAction="never"/>
-	<item
 		android:id="@+id/action_web_search"
 		android:title="@string/web_search"
 		android:icon="@drawable/ic_language_24dp"
