@@ -113,7 +113,7 @@ class SquigglyProgress : Drawable() {
 			heightAnimator?.cancel()
 
 			val emphasizedDecelerate = PathInterpolator(0.05f, 0.7f, 0.1f, 1.0f)
-			val standardEasing = android.view.animation.AccelerateInterpolator()
+			val standardEasing = AccelerateInterpolator()
 
 			heightAnimator = ValueAnimator.ofFloat(heightFraction, if (animate) 1f else 0f).apply {
 				interpolator = if (animate) emphasizedDecelerate else standardEasing
@@ -186,12 +186,12 @@ class SquigglyProgress : Drawable() {
         // translate to the start position of the progress bar for all draw commands
         val clipTop = lineAmplitude + strokeWidth
         val saveCount = canvas.saveLayer(
-            bounds.left.toFloat(), 
-            bounds.top.toFloat(), 
-            bounds.right.toFloat(), 
-            bounds.bottom.toFloat(), 
+            bounds.left.toFloat(),
+            bounds.top.toFloat(),
+            bounds.right.toFloat(),
+            bounds.bottom.toFloat(),
             null
-        )        
+        )
 		canvas.translate(bounds.left.toFloat(), bounds.centerY().toFloat())
 
         // Draw path up to progress position
@@ -210,7 +210,7 @@ class SquigglyProgress : Drawable() {
         } else {
             // No transition, just draw a flat line to the end of the region.
             // The discontinuity is hidden by the progress bar thumb shape.
-            canvas.drawLine(totalProgressPx, 0f, totalWidth, 0f, linePaint)
+            canvas.drawLine(totalProgressPx+4f, 0f, totalWidth, 0f, linePaint)
         }
 
         // Draw round line cap at the beginning of the wave
@@ -219,10 +219,12 @@ class SquigglyProgress : Drawable() {
 		// canvas.drawPoint(totalWidth, 0f, linePaint)
 		
 		val originalXfermode = linePaint.xfermode
-        linePaint.xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC)
-        canvas.drawPoint(totalWidth, 0f, linePaint)
+		val originalLineStyle = linePaint.style
+        linePaint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC)
+        linePaint.style = Paint.Style.FILL
+        canvas.drawCircle(totalWidth, 0f, strokeWidth / 2f, linePaint)
         linePaint.xfermode = originalXfermode
-		
+		linePaint.style = originalLineStyle
         canvas.restoreToCount(saveCount)
     }
 
